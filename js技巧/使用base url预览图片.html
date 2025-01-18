@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    #preview {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <input type="file">
+  <img src="data:image/png;base64,xxx" alt="" id="preview">
+  <script>
+    const img = document.getElementById('preview')
+    const input = document.querySelector('input')
+    input.onchange = () => {
+      const file = input.files[0]
+      const reader = new FileReader() // 创建一个文件阅读器
+      reader.readAsDataURL(file) // 将文件转为base64字符串
+      // 由于js中所有的IO（数据的读取和写入）操作都是异步的，因此要使用异步操作
+      reader.onload = e => {
+        img.src = e.target.result
+      }
+    }
+  </script>
+  <script src="data:application/javascript,alert(123)"></script>
+</body>
+</html>

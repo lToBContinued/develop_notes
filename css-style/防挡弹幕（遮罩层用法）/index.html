@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>防挡弹幕（遮罩层用法）</title>
+  <style>
+    body {
+      background: lightcoral;
+      margin: 0;
+    }
+    
+    .test {
+      margin: 30px auto;
+      width: 600px;
+      height: 400px;
+      background-color: lightblue;
+      padding: 30px;
+      /*遮罩层*/
+      /*填充渐变是为了解决边缘处被遮罩裁剪掉的问题*/
+      -webkit-mask-image: linear-gradient(to right, #000, #000, 13%, transparent 13%, transparent 82%, #000 82%),
+      linear-gradient(to bottom, #000, #000, 10%, transparent 10%, transparent 90%, #000 90%),
+      url(../images/遮罩.svg);
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+    }
+  </style>
+</head>
+<body>
+  <div class="test">
+    Regionemattis unum dicat esse commodo ubique dictum prodesset aliquam congue inani dicam postea. Ignotacum
+    signiferumque. Tinciduntgraece alienum quisque dicunt persecuti ornatus ludus iudicabit facilisis audire torquent in
+    mei diam movet. Dicoviverra oratio falli veritus nulla voluptaria ridiculus curabitur antiopam periculis affert et
+    ne invenire. Feugiatcorrumpit maecenas dico leo enim appetere mutat fusce labores. Loremaptent invidunt molestiae
+    quis auctor malesuada netus urbanitas epicuri antiopam.Regionemattis unum dicat esse commodo ubique dictum prodesset
+    aliquam congue inani dicam postea. Ignotacum signiferumque. Tinciduntgraece alienum quisque dicunt persecuti ornatus
+    ludus iudicabit facilisis audire torquent in mei diam movet. Dicoviverra oratio falli veritus nulla voluptaria
+    ridiculus curabitur antiopam periculis affert et ne invenire. Feugiatcorrumpit maecenas dico leo enim appetere mutat
+    fusce labores. Loremaptent invidunt molestiae quis auctor malesuada netus urbanitas epicuri antiopam.Regionemattis
+    unum dicat esse commodo ubique dictum prodesset aliquam congue inani dicam postea. Ignotacum signiferumque.
+    Tinciduntgraece alienum quisque dicunt persecuti ornatus ludus iudicabit facilisis audire torquent in mei diam
+    movet. Dicoviverra oratio falli veritus nulla voluptaria ridiculus curabitur antiopam periculis affert et ne
+    invenire.
+  </div>
+</body>
+</html>

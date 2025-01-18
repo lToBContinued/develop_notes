@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" href="./style/reset.css">
+  <link rel="stylesheet" href="./style/index.css">
+</head>
+<body>
+  <div class="container">
+    <div class="login">
+      <div class="tab">
+        <img src="svg/qr-code.svg" class="qr-code" />
+        <img class="close" src="svg/close.svg" alt="">
+      </div>
+      <div class="logo">
+        <img src="svg/mihoyo.svg" alt="">
+        <span class="slogan">
+          TECH OTAKUS SAVE THE WORLD
+        </span>
+      </div>
+      <form class="login-form" action="">
+        <div class="phone-number">
+          <input type="text" class="phone-number-input" maxlength="11" placeholder="输入手机号登录/注册" required>
+        </div>
+        <div class="code-number">
+          <input type="text" class="code-number-input" maxlength="6" placeholder="验证码" required>
+        </div>
+        <div class="user-agreement">
+          <input type="radio" class="radio" required>
+          <button class="radio-btn" type="button"></button>
+          <p class="agreement-text">
+            <span>同意</span>
+            <a href="#" class="link">《用户协议》</a>
+            <span>和</span>
+            <a href="#" class="link">《隐私政策》</a>
+          </p>
+        </div>
+        <button class="enter-game" type="submit">进入游戏</button>
+      </form>
+      <div class="mode-box">
+        <a href="#" class="mode-change-link">
+          <img src="svg/mi.svg" class="mi" />
+          <span>账号密码</span>
+        </a>
+        <a href="#" class="mode-change-link">
+          <img src="svg/taptap.svg" class="taptap"></img>
+          <span>TapTap</span>
+        </a>
+      </div>
+      <div class="message-tip hidden">
+        <span>有未填写的内容</span>
+      </div>
+    </div>
+    <div class="border_deco"></div>
+  </div>
+  
+  <script src="./js/index.js"></script>
+</body>
+</html>

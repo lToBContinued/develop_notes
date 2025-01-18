@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: #333;
+    }
+    
+    .container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 100px auto 0;
+      background-color: #fff;
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+    
+    .items {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .item {
+      width: 80px;
+      height: 10px;
+      border-radius: 999px;
+      background-color: #000;
+      transition: all 0.3s;
+    }
+    
+    .item:nth-child(2) {
+      margin: 10px 0;
+    }
+    
+    .hidden {
+      opacity: 0;
+    }
+    
+    .rotate-clockwise {
+      transform: translateY(20px) rotate(45deg);
+    }
+    
+    .rotate-counterclockwise {
+      transform: translateY(-20px) rotate(-45deg);
+    }
+    
+    .menu {
+      width: 400px;
+      height: 300px;
+      margin: 0 auto;
+      background-color: #fff;
+      border-radius: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+    }
+    
+    .menu-show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="items">
+      <div class="item"></div>
+      <div class="item"></div>
+      <div class="item"></div>
+    </div>
+  </div>
+  <div class="menu"></div>
+  <script>
+    const container = document.querySelector('.container')
+    const items = document.querySelectorAll('.item')
+    const menu = document.querySelector('.menu')
+    let flag = true
+    container.addEventListener('click', () => {
+      items[0].classList.toggle('rotate-clockwise')
+      items[1].classList.toggle('hidden')
+      items[2].classList.toggle('rotate-counterclockwise')
+      if (flag) {
+        container.style.borderRadius = '10px 10px 0 0'
+      } else {
+        container.style.borderRadius = '10px'
+      }
+      menu.classList.toggle('menu-show')
+      flag = !flag
+    })
+  </script>
+</body>
+</html>

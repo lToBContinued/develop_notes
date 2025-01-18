@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>无缝轮播图</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    
+    .carousel-container {
+      position: relative;
+      width: 300px;
+      height: 200px;
+      outline: 4px solid #000;
+      margin: 100px auto 0;
+      overflow: hidden;
+    }
+    
+    .carousel-list {
+      position: absolute;
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .carousel-item {
+      flex-shrink: 0; /*防止元素被压缩*/
+      width: 300px;
+      height: 200px;
+      font-size: 50px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 200px;
+    }
+    
+    .arrow-wrapper {
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px;
+    }
+    
+    .arrow-item {
+      width: 30px;
+      height: 30px;
+      background-color: rgba(0, 0, 0, 0.3);
+      text-align: center;
+      line-height: 30px;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      transition: all 0.1s;
+      user-select: none;
+      z-index: 999;
+    }
+    
+    .arrow-item:hover {
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+    
+    .arrow-item:active {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    
+    .indicator-wrapper {
+      display: flex;
+      gap: 5px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 10px;
+      z-index: 999;
+    }
+    
+    .indicator-item {
+      width: 10px;
+      height: 10px;
+      z-index: 999;
+      border-radius: 50%;
+      border: 1px solid #fff;
+      cursor: pointer;
+    }
+    
+    .active {
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="carousel-container">
+    <div class="carousel-list">
+      <div class="carousel-item item1" style="background-color:lightblue;">1</div>
+      <div class="carousel-item item2" style="background-color:lightgreen;">2</div>
+      <div class="carousel-item item3" style="background-color:lightcoral;">3</div>
+    </div>
+    <div class="arrow-wrapper">
+      <div class="prev arrow-item">&lt;</div>
+      <div class="next arrow-item">&gt;</div>
+    </div>
+    <div class="indicator-wrapper">
+      <span class="indicator-item active"></span>
+      <span class="indicator-item"></span>
+      <span class="indicator-item"></span>
+    </div>
+  </div>
+  
+  <script>
+    const doms = {
+      carouseList: document.querySelector('.carousel-list'),
+      arrowLeft: document.querySelector('.prev'),
+      arrowRight: document.querySelector('.next'),
+      indicators: document.querySelectorAll('.indicator-item'),
+    }
+    const count = doms.indicators.length // 轮播图数量
+    let curIndex = 0 // 当前是第几张
+    
+    // 轮播图移动
+    function moveTo(index) {
+      // 移动图片位置
+      doms.carouseList.style.transform = `translateX(-${ index * 100 }%)`
+      doms.carouseList.style.transition = 'transform 0.5s'
+      // 设置指示器
+      doms.indicators.forEach((indicator) => {
+        indicator.classList.remove('active')
+      })
+      doms.indicators[index].classList.add('active')
+      curIndex = index
+    }
+    
+    // 点击指示器切换图片
+    doms.indicators.forEach((indicator, index) => {
+      indicator.onclick = () => {
+        moveTo(index)
+      }
+    })
+    
+    // 对轮播图进行处理，将第一张图片复制到最后，最后一张图片复制到最前面，在无缝滚动的时候，用于衔接
+    function init() {
+      // 复制第一张图片
+      const firstCloned = doms.carouseList.firstElementChild.cloneNode(true)
+      // 复制第二张图片
+      const lastCloned = doms.carouseList.lastElementChild.cloneNode(true)
+      doms.carouseList.appendChild(firstCloned) // 将第一张图片添加到尾部
+      doms.carouseList.insertBefore(lastCloned, doms.carouseList.firstElementChild) // 将最后一张图片添加到头部
+      lastCloned.style.marginLeft = '-100%' // 重新图片列表的调整位置
+    }
+    init()
+    
+    // 点击左右箭头滚动
+    function left() {
+      if (curIndex === 0) {
+        // 无缝跳到最后一张，因为没有过渡，所以用户是没有感知的
+        doms.carouseList.style.transition = 'none'
+        doms.carouseList.style.transform = `translateX(-${ count * 100 }%)`
+        // window.requestAnimationFrame() 方法会告诉浏览器你希望执行一个动画。它要求浏览器在下一次重绘之前，调用用户提供的回调函数。
+        requestAnimationFrame(() => {
+          moveTo(count - 1)
+        })
+      } else {
+        moveTo(curIndex - 1)
+      }
+    }
+    function right() {
+      if (curIndex === count - 1) {
+        // 无缝跳到最后一张，因为没有过渡，所以用户是没有感知的
+        doms.carouseList.style.transition = 'none'
+        doms.carouseList.style.transform = `translateX(100%)`
+        // window.requestAnimationFrame() 方法会告诉浏览器你希望执行一个动画。它要求浏览器在下一次重绘之前，调用用户提供的回调函数。
+        requestAnimationFrame(() => {
+          moveTo(0)
+        })
+      } else {
+        moveTo(curIndex + 1)
+      }
+    }
+    doms.arrowLeft.onclick = left
+    doms.arrowRight.onclick = right
+  </script>
+</body>
+</html>

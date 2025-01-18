@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>弧边选项卡</title>
+  <style>
+    .tab {
+      position: relative;
+      width: 150px;
+      height: 40px;
+      margin: 0 auto;
+      background: #ed6a5e;
+      border-radius: 10px 10px 0 0;
+      transform-origin: center bottom; /*设置变换的中心点为底边的中间*/
+      transform: perspective(100px) rotateX(50deg); /*环绕中心点，绕x轴旋转一定的角度，并设置透视距离*/
+    }
+    
+    .tab::before,
+    .tab::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #000;
+      bottom: 0;
+    }
+    
+    .tab::before {
+      left: -10px;
+      background: radial-gradient(circle at 0 0, transparent 10px, #ed6a5e 10px); /*用渐变效果作为底部外侧的两个外圆角*/
+    }
+    
+    .tab::after {
+      right: -10px;
+      background: radial-gradient(circle at 10px 0, transparent 10px, #ed6a5e 10px); /*用渐变效果作为底部外侧的两个外圆角*/
+    }
+  </style>
+</head>
+<body>
+  <div class="tab"></div>
+</body>
+</html>

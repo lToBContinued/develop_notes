@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>卡片翻转</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    .box {
+      margin-top: 50px;
+      width: 100%;
+    }
+    
+    .card {
+      position: relative;
+      width: fit-content;
+      margin: 0 auto;
+      transition: all 0.5s;
+      /*景深效果*/
+      perspective: 500px;
+    }
+    
+    .face {
+      transition: all 0.5s;
+    }
+    
+    .back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: #ccc;
+      width: 200px;
+      height: 200px;
+      color: #000;
+      font-size: 20px;
+      line-height: 200px;
+      text-align: center;
+      /*一开始的时候就是翻过去的，之后鼠标移上去后再翻回来*/
+      transform: rotateY(180deg);
+      transition: all 0.5s;
+    }
+    
+    .card:hover .face {
+      /*旋转180度*/
+      transform: rotateY(-180deg);
+    }
+    
+    .card:hover .back {
+      /*旋转180度*/
+      transform: rotateY(0deg);
+    }
+    
+    .face,
+    .back {
+      /*背面的可见度：隐藏*/
+      backface-visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="card">
+      <img src="../images/2.jpg" alt="" class="face" style="width: 200px;">
+      <p class="back">
+        <span>希儿·芙乐艾</span>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

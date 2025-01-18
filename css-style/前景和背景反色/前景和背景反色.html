@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>前景和背景反色</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    
+    .container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(45deg, #fff 50%, #000 50%);
+    }
+    
+    .title {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      font-weight: 700;
+      transition: all 0.5s;
+      color: #fff;
+      /*mix-blend-mode CSS 属性描述了元素的内容应该与元素的直系父元素的内容和元素的背景如何混合。*/
+      mix-blend-mode: difference;
+    }
+    
+    .title:hover {
+      transform: translate(-105%, -50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="title">Seele Vollerei</p>
+  </div>
+</body>
+</html>

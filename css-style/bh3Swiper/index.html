@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    
+    .box {
+      position: relative;
+      width: 100%;
+      height: fit-content;
+      margin-top: 100px;
+      padding-bottom: 100px;
+    }
+    
+    .swiper-wrapper {
+      position: relative;
+      display: flex;
+      width: 800px;
+      height: 500px;
+      margin: 0 auto;
+    }
+    
+    .swiper-wrapper div {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    
+    .swiper-wrapper div img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px;
+    }
+    
+    .center {
+      opacity: 1;
+      transform: translateX(0) translateZ(0);
+      z-index: 3;
+    }
+    
+    .left {
+      opacity: 1;
+      filter: brightness(0.6);
+      transform: perspective(500px) translateX(-60%) translateZ(-150px);
+      z-index: 2;
+    }
+    
+    .right {
+      opacity: 1;
+      filter: brightness(0.6);
+      transform: perspective(500px) translateX(60%) translateZ(-150px);
+      z-index: 2;
+    }
+    
+    .back {
+      opacity: 0;
+      filter: brightness(0.6);
+      transform: perspective(500px) translateX(0) translateZ(-150px);
+      z-index: 1;
+    }
+    
+    .indicator-wrapper {
+      display: flex;
+      position: absolute;
+      left: 50%;
+      bottom: 70px;
+      transform: translateX(-50%);
+    }
+    
+    .indicator-item {
+      width: 30px;
+      height: 30px;
+      margin: 0 16px;
+      background: url("../images/dot.webp") center no-repeat;
+      background-size: 100%;
+    }
+    
+    .indicator-item:hover {
+      background: url("../images/star.webp") center no-repeat;
+      background-size: 100%;
+    }
+    
+    .indicator-active {
+      background: url("../images/star.webp") center no-repeat;
+      background-size: 100%;
+    }
+    
+    .arrow-wrapper {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, calc(-50% - 50px));
+      display: flex;
+      justify-content: space-between;
+      width: 1050px;
+      height: 80px;
+      z-index: 999;
+    }
+    
+    .arrow-item {
+      width: 100px;
+      height: 100%;
+    }
+    
+    .prev {
+      background: url("../images/prev.webp") center no-repeat;
+      background-size: 100%;
+    }
+    
+    .next {
+      background: url("../images/next.webp") center no-repeat;
+      background-size: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="swiper-wrapper">
+      <div class="center">
+        <img src="../images/mhy01.webp" alt="">
+      </div>
+      <div class="right">
+        <img src="../images/mhy02.webp" alt="">
+      </div>
+      <div class="back">
+        <img src="../images/mhy03.webp" alt="">
+      </div>
+      <div class="left">
+        <img src="../images/mhy04.webp" alt="">
+      </div>
+    </div>
+    <div class="arrow-wrapper">
+      <div class="arrow-item prev"></div>
+      <div class="arrow-item next"></div>
+    </div>
+    <div class="indicator-wrapper">
+      <div class="indicator-item indicator-active"></div>
+      <div class="indicator-item"></div>
+      <div class="indicator-item"></div>
+      <div class="indicator-item"></div>
+    </div>
+  </div>
+  <script>
+    const dom = {
+      swiperWrapper: document.querySelector('.swiper-wrapper'),
+      swiperList: document.querySelector('.swiper-wrapper').querySelectorAll('div'),
+      indicatorList: document.querySelectorAll('.indicator-item'),
+      prevBtn: document.querySelector('.prev'),
+      nextBtn: document.querySelector('.next'),
+    }
+    const count = dom.indicatorList.length // 轮播图总数
+    let currentIndex = 0
+    let time = 3000
+    let timer
+    
+    function setTime() {
+      return setInterval(() => {
+        if (currentIndex < count - 1) {
+          currentIndex++
+        } else {
+          currentIndex = 0
+        }
+        moveTo()
+      }, time)
+    }
+    timer = setTime()
+    
+    // 鼠标移入暂停
+    dom.swiperWrapper.onmouseover = function() {
+      clearInterval(timer)
+    }
+    // 鼠标移出继续轮播
+    dom.swiperWrapper.onmouseout = function() {
+      timer = setTime()
+    }
+    
+    // 点击指示器
+    dom.indicatorList.forEach((item, index) => {
+      item.onclick = () => {
+        clearInterval(timer)
+        currentIndex = index
+        moveTo()
+        timer = setTime()
+      }
+    })
+    
+    // 点击上一张
+    dom.prevBtn.addEventListener('click', () => {
+      clearInterval(timer)
+      currentIndex--
+      if (currentIndex < 0) {
+        currentIndex = count - 1
+      }
+      moveTo()
+      timer = setTime()
+    })
+    
+    // 点击下一张
+    dom.nextBtn.addEventListener('click', () => {
+      clearInterval(timer)
+      currentIndex++
+      if (currentIndex > count - 1) {
+        currentIndex = 0
+      }
+      moveTo()
+      timer = setTime()
+    })
+    
+    // 移动轮播图
+    function moveTo() {
+      for (let i = 0; i < count; i++) {
+        dom.swiperList[i].className = 'back'
+        dom.indicatorList[i].classList.remove('indicator-active')
+      }
+      if (currentIndex === count - 1) {
+        dom.swiperList[0].className = 'right'
+        dom.swiperList[currentIndex].className = 'center'
+        dom.swiperList[currentIndex - 1].className = 'left'
+        dom.indicatorList[currentIndex].classList.add('indicator-active')
+      } else if (currentIndex === 0) {
+        dom.swiperList[currentIndex].className = 'center'
+        dom.swiperList[currentIndex + 1].className = 'right'
+        dom.swiperList[count - 1].className = 'left'
+        dom.indicatorList[currentIndex].classList.add('indicator-active')
+      } else {
+        dom.swiperList[currentIndex].className = 'center'
+        dom.swiperList[currentIndex + 1].className = 'right'
+        dom.swiperList[currentIndex - 1].className = 'left'
+        dom.indicatorList[currentIndex].classList.add('indicator-active')
+      }
+    }
+  </script>
+</body>
+</html>
