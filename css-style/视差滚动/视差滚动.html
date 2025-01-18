@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>视差滚动</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100vh;
+    }
+    
+    h1 {
+      font-size: 100px;
+      color: #fff;
+      text-shadow: 2px 4px 3px rgba(0, 0, 0, 0.3);
+      user-select: none;
+    }
+    
+    section:nth-child(1) {
+      background: url("../images/7.jpg") no-repeat;
+      background-size: cover;
+    }
+    
+    section:nth-child(2) {
+      background: url("../images/8.jpg") no-repeat;
+      background-size: cover;
+    }
+    
+    section:nth-child(3) {
+      background: url("../images/9.jpg") no-repeat;
+      background-size: cover;
+    }
+    
+    section:nth-child(4) {
+      background: url("../images/10.jpg") no-repeat;
+      background-size: cover;
+    }
+    
+    section:nth-child(5) {
+      background: url("../images/18.jpg") no-repeat;
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Simple parallax sections</h1>
+  </section>
+  <section>
+    <h1>Hey look, a title</h1>
+  </section>
+  <section>
+    <h1>They just keep coming</h1>
+  </section>
+  <section>
+    <h1>So smooth thought</h1>
+  </section>
+  <section>
+    <h1>Nice, right?</h1>
+  </section>
+  <!-- gsap是一个动画库，它可以让你创建平滑的动画效果。它支持多种动画效果，包括缓动、滚动、缩放、旋转等。它还支持多种动画插件，包括GSAP、Velocity、TimelineMax等。它还支持多种动画库，包括jQuery、React、Vue等。 -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+  <script>
+    const sections = document.querySelectorAll('section')
+    gsap.registerPlugin(ScrollTrigger) // 注册滚动条插件，执行动画时会自动计算
+    // 给每一个section添加一个动画
+    sections.forEach(dom => {
+      // gsap.fromTo(要改变的元素，开始的状态，结束的状态)
+      gsap.fromTo(dom, {
+        backgroundPositionY: `-${ window.innerHeight / 2 }px`,
+      }, {
+        backgroundPositionY: `${ window.innerHeight / 2 }px`,
+        ease: 'none', // 动画的缓动效果
+        scrollTrigger: {
+          trigger: dom, // 控制的元素
+          scrub: true, // 元素是否跟随滚动条滚动
+        },
+      })
+    })
+  </script>
+</body>
+</html>
