@@ -43,9 +43,10 @@ o.fn(100) // 衬衫 的价格是 100 元
 const o = {
   clothes: '衬衫'
 }
-function fn(price, num) {
-  console.log(`买了 ${this.clothes} ${num} 件，每件的价格是 ${price} 元`)
-  return `总价是 ${price * num} 元`
+function fn(arg1, arg2, arg3, arg4) {
+  console.log(`绑定了this：${this.clothes}`)
+  console.log('传入的参数：', arg1, ',', arg2, ',', arg3, ',', arg4)
+  return '这个函数有返回值'
 }
 // call 函数的实现
 // myCall 是一个函数，在使用的时候，通过其他的函数使用“.”操作符，来调用myCall函数
@@ -70,10 +71,11 @@ Function.prototype.myCall = function (obj, ...args) {
   // 4、返回调用者的返回值
   return res
 }
-console.log(fn.myCall(o, 100, 2))
+console.log(fn.myCall(o, 'a', 100, { sku: 1001 }, [1, 2, 3]))
 /**
- * 买了 衬衫 2 件，每件的价格是 100 元
- * 总价是 200 元
+ * 绑定了this：衬衫
+ * 传入的参数： a , 100 , { sku: 1001 } , [ 1, 2, 3 ]
+ * 这个函数有返回值
  */
 ```
 
@@ -83,9 +85,10 @@ console.log(fn.myCall(o, 100, 2))
 const o = {
   clothes: '衬衫'
 }
-function fn(price, num) {
-  console.log(`买了 ${this.clothes} ${num} 件，每件的价格是 ${price} 元`)
-  return `总价是 ${price * num} 元`
+function fn(arg1, arg2, arg3, arg4) {
+  console.log(`绑定了this：${this.clothes}`)
+  console.log('传入的参数：', arg1, ',', arg2, ',', arg3, ',', arg4)
+  return '这个函数有返回值'
 }
 // call 函数的实现
 // myCall 是一个函数，在使用的时候，通过其他的函数使用“.”操作符，来调用myCall函数
@@ -107,7 +110,7 @@ Function.prototype.myCall = function (obj) {
   const newArgs = []
   for (let i = 1; i < arguments.length; i++) {
     // arguments 是一个对应于传递给函数的参数的类数组对象。
-    newArgs.push(arguments[i])
+    newArgs.push('arguments[' + i + ']')
   }
   let res = eval('obj.fn(' + newArgs + ')') // 使用 res 接收调用者的返回值
   // 3、执行完后，将其调用者从传入的对象上删除
@@ -115,9 +118,10 @@ Function.prototype.myCall = function (obj) {
   // 4、返回调用者的返回值
   return res
 }
-console.log(fn.myCall(o, 100, 2))
+console.log(fn.myCall(o, 'a', 100, { sku: 1001 }, [1, 2, 3]))
 /**
- * 买了 衬衫 2 件，每件的价格是 100 元
- * 总价是 200 元
+ * 绑定了this：衬衫
+ * 传入的参数： a , 100 , { sku: 1001 } , [ 1, 2, 3 ]
+ * 这个函数有返回值
  */
 ```
