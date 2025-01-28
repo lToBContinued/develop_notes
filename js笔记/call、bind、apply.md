@@ -57,21 +57,23 @@ function fn(arg1, arg2, arg3, arg4) {
  * @return {any} 返回调用者的返回值
  */
 Function.prototype.myCall = function (obj, ...args) {
-  // 5. 如果传入的对象是 null 或者 undefined，那么将其指向 window
-  obj = obj || window
+  // 5. 使用 globalThis（包含全局的 this 值）代替 window，兼容非浏览器环境
+  // 在浏览器中，全局对象是 window
+  // 在 Node.js 中，全局对象是 global
+  // 在 Web Worker 中，全局对象是 self
+  obj = obj || globalThis
   // call 函数的本质就是将其调用者挂载到传入的对象上，并立即执行该函数
   // 1、因此需要先将其调用者挂载到传入的对象上
-  obj.fn = this
-  // 2、立即执行该函数，使用剩余参数给挂载的函数传参
-  // call 函数在 es3 中就存在了，那时候是没有剩余参数的，因此需要使用 eval 函数来执行
-  // eval() 函数会将传入的字符串当做 JavaScript 代码进行执行。
-  let res = obj.fn(...args) // 使用 res 接收调用者的返回值
+  const fnKey = Symbol('fn') // 使用 Symbol 避免属性冲突
+  obj[fnKey] = this
+  // 2、立即执行该函数，使用 es6 中的剩余参数给挂载的函数传参
+  let res = obj[fnKey](...args) // 使用 res 接收调用者的返回值
   // 3、执行完后，将其调用者从传入的对象上删除
-  delete obj.fn
+  delete obj[fnKey]
   // 4、返回调用者的返回值
   return res
 }
-console.log(fn.myCall(o, 'a', 100, { sku: 1001 }, [1, 2, 3]))
+console.log(fn.myCall(null, 'a', 100, { sku: 1001 }, [1, 2, 3]))
 /**
  * 绑定了this：衬衫
  * 传入的参数： a , 100 , { sku: 1001 } , [ 1, 2, 3 ]
@@ -99,11 +101,15 @@ function fn(arg1, arg2, arg3, arg4) {
  * @return {any} 返回调用者的返回值
  */
 Function.prototype.myCall = function (obj) {
-  // 5. 如果传入的对象是 null 或者 undefined，那么将其指向 window
-  obj = obj || window
+  // 5. 使用 globalThis（包含全局的 this 值）代替 window，兼容非浏览器环境
+  // 在浏览器中，全局对象是 window
+  // 在 Node.js 中，全局对象是 global
+  // 在 Web Worker 中，全局对象是 self
+  obj = obj || globalThis
   // call 函数的本质就是将其调用者挂载到传入的对象上，并立即执行该函数
   // 1、因此需要先将其调用者挂载到传入的对象上
-  obj.fn = this
+  const fnKey = Symbol('fn') // 使用 Symbol 避免属性冲突
+  obj[fnKey] = this
   // 2、立即执行该函数，使用剩余参数给挂载的函数传参
   // call 函数在 es3 中就存在了，那时候是没有剩余参数的，因此需要使用 eval 函数来执行
   // eval() 函数会将传入的字符串当做 JavaScript 代码进行执行。
@@ -112,9 +118,9 @@ Function.prototype.myCall = function (obj) {
     // arguments 是一个对应于传递给函数的参数的类数组对象。
     newArgs.push('arguments[' + i + ']')
   }
-  let res = eval('obj.fn(' + newArgs + ')') // 使用 res 接收调用者的返回值
+  let res = eval('obj[fnKey](' + newArgs + ')') // 使用 res 接收调用者的返回值
   // 3、执行完后，将其调用者从传入的对象上删除
-  delete obj.fn
+  delete obj[fnKey]
   // 4、返回调用者的返回值
   return res
 }
