@@ -514,11 +514,14 @@ const reset = () => {
 
 作用：用于监听 state 的变化
 
-Store.$subscribe((args, state) => {})
+Store.$subscribe((args, state) => {}, { detached: true/false })
 
+第一个参数：
 **args**：这个参数是一个对象，它包含了订阅的一些元信息，比如storeId（当前store的ID）和type（变化类型，例如direct或patchObject）。args参数让你能够知道是哪个store触发了这个订阅回调，以及变化是如何发生的。
-
 **state**：这个参数是对当前store状态的引用。它让你能够访问到store的最新状态。
+
+第二个参数（可选）：
+**{ detached: true/false }**：默认情况下，state subscription 会被绑定到添加它们的组件上 (如果 store 在组件的 setup() 里面)。这意味着，当该组件被卸载时，它们将被自动删除。如果你想在组件卸载后依旧保留它们，请将 { detached: true } 作为第二个参数，以将 state subscription 从当前组件中分离
 
 ```vue
 <template>
