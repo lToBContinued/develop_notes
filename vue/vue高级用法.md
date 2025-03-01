@@ -592,3 +592,215 @@ import VuDialog from '@/components/vu-dialog.vue'
 ```
 
 [![pEk0BlT.png](https://s21.ax1x.com/2025/01/19/pEk0BlT.png)](https://imgse.com/i/pEk0BlT)
+
+# 虚拟列表
+
+## 原理
+
+只渲染盒子可视区域内的元素，当滚动条滚动时，动态计算出可视区域内的元素，然后重新渲染。
+
+## 优点
+
+1. 只渲染可视区域内的元素，减少了 DOM 元素的数量，提高了性能。
+2. 当数据量很大时，只渲染可视区域内的元素，可以大大减少内存占。
+
+## 实现方式
+
+virtual-list.vue
+
+```vue
+<template>
+  <div class="container" ref="container" :style="{ height: containerHeight }" @scroll="handleScroll">
+    <div class="list" :style="{ top: listTop }">
+      <div v-for="item in showData" :key="item.id" :style="{ height: size + 'px' }">
+        {{ item.content }}
+      </div>
+    </div>
+    <!-- 撑开容器内容高度的元素，使元素内部可以滚动 -->
+    <div class="bar" :style="{ height: barHeight }"></div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+
+type Items = {
+  id: number
+  content: string
+}
+
+const props = defineProps<{
+  items: Items[]
+  size: number
+  shownumber: number
+}>()
+const start = ref(0)
+const end = ref(props.shownumber)
+const container = ref()
+
+// 最终筛选出要展示的数据
+const showData = computed<Items[]>(() => {
+  return props.items.slice(start.value, end.value)
+})
+// 容器的高度
+const containerHeight = computed<string>(() => {
+  return props.size * props.shownumber + 'px'
+})
+// 撑开容器内容高度的元素的高度
+const barHeight = computed<string>(() => {
+  return props.size * props.items.length + 'px'
+})
+// 列表向上滚动改变top的值
+const listTop = computed<string>(() => {
+  return start.value * props.size + 'px'
+})
+
+// 容器的滚动事件
+const handleScroll = () => {
+  const scrollTop = container.value.scrollTop
+  // 计算卷去的数据条数，用计算的结果作为获取数据的起始和结束下标
+  // 起始的下标就是卷去的数据条数，向下取整
+  start.value = Math.floor(scrollTop / props.size)
+  // 结束的下标就是起始的下标加上要展示的数据条数
+  end.value = start.value + props.shownumber
+}
+</script>
+
+<style scoped lang="scss">
+.container {
+  overflow-y: scroll;
+  background-color: rgb(150, 150, 150, 0.5);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: v-bind(size) px;
+  width: 500px;
+  margin: 0 auto;
+  position: relative;
+  text-align: center;
+}
+
+.list {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+</style>
+
+```
+
+App.vue
+
+```vue
+<template>
+  <virtual-list :items="items" :size="60" :shownumber="10"></virtual-list>
+</template>
+
+<script setup lang="ts">
+import VirtualList from '@/components/virtual-list.vue'
+import { computed } from 'vue'
+
+type Item = {
+  id: number
+  content: string
+}
+
+const items = computed<Item[]>(() => {
+  return Array(10000)
+    .fill('')
+    .map((_, index) => {
+      return {
+        id: index,
+        content: '列表内容' + index,
+      }
+    })
+})
+</script>
+```
+
+# 二次封装 ui 组件
+
+## 优点
+
+1. 通过二次封装，可以强制统一项目中组件的视觉样式（如颜色、间距、交互动效）和交互逻辑，避免不同开发者直接使用原生组件时因参数差异导致的风格碎片化。
+2. 封装后的组件通过预设常用配置（如默认尺寸、国际化文案）和简化API，减少开发者在不同页面重复编写相似代码的情况。
+
+## 实现
+
+my-input.vue
+
+```vue
+<template>
+  <div class="my-input">
+    <!--$attrs 可以将 props 接收了之外的所有属性（值和事件）接收到，使用 v-bind 将这些值和事件绑定到组件上-->
+    <el-input ref="inputRef" v-bind="$attrs" style="width: 400px" placeholder="请输入">
+      <!--$slots 可以获取父组件传递过来的所有插槽，循环这个属性即可将所有插槽获取到-->
+      <!--使用slotData可以接收到插槽中传递过来的数据-->
+      <template v-for="(value, name) in $slots" #[name]="slotData">
+        <slot :name="name" v-bind="slotData || {}"></slot>
+      </template>
+    </el-input>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, reactive } from 'vue'
+
+const inputRef = ref()
+let events = reactive<any>({})
+
+onMounted(() => {
+  // 由于 vue 中，父组件无法直接获取到子组件的 ref，因此采用在子组件中将子组件身上的 ref 中的事件抽出来保存到对象中，再暴露出去的方案
+  if (inputRef.value) {
+    const entries = Object.entries(inputRef.value)
+    for (const [key, value] of entries) {
+      events[key] = value
+    }
+  }
+})
+
+defineExpose(events)
+</script>
+
+<style scoped lang="scss">
+.my-input {
+  transition: all 0.3s;
+}
+
+.my-input:hover,
+.my-input:focus-within {
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+}
+</style>
+```
+
+App.vue
+
+```vue
+<template>
+  <my-input ref="myInputRef" v-model="data">
+    <template #prepend>
+      <el-select placeholder="请选择" style="width: 115px">
+        <el-option label="餐厅" value="1"></el-option>
+        <el-option label="订单" value="2"></el-option>
+        <el-option label="电话" value="3"></el-option>
+      </el-select>
+    </template>
+    <template #append>
+      <el-button :icon="Search"></el-button>
+    </template>
+  </my-input>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import MyInput from '@/components/my-input.vue'
+import { Search } from '@element-plus/icons-vue'
+
+const data = ref('123')
+const myInputRef = ref<InstanceType<typeof MyInput>>()
+
+onMounted(() => {
+  myInputRef.value?.focus()
+})
+</script>
+```
