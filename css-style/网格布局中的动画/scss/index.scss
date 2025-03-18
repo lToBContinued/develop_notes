@@ -1,0 +1,40 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #23262d;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /*注意：此处只能分开写，不能用repeat，因为transition只对能计算的属性生效*/
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 10px;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto;
+  margin-top: 50px;
+  transition: 0.5s ease;
+}
+
+@for $i from 1 through 9 {
+  /*此处可以使用sass的循环来写*/
+  /*has的作用：父元素满足他的第一个子元素有鼠标移入，只有这种情况下，父元素才会被选中*/
+  .container:has(.item:nth-child(#{$i}):hover) {
+    $r: floor(($i - 1) / 3 + 1); // 改变第几行
+    $c: ($i - 1) % 3 + 1; // 改变第几列
+    /*
+      数组 (lists) 指 Sass 如何处理 CSS 中 margin: 10px 15px 0 0 或者 font-face: Helvetica, Arial, sans-serif
+      这样通过空格或者逗号分隔的一系列的值。事实上，独立的值也被视为数组 —— 只包含一个值的数组。
+      nth 函数可以直接访问数组中的某一项；join 函数可以将多个数组连接在一起；append 函数可以在数组中添加新值；而 @each 指令能够遍历数组中的每一项。
+    */
+    $arr: 1fr 1fr 1fr; // 定义一个数组，用来保存每一行的比例
+    $rows: set-nth($arr, $r, 2fr); // 改变数组中的某一项 set-nth(被改变的数组，改变的项的下标，改变的值)
+    $cols: set-nth($arr, $c, 2fr);
+    grid-template-columns: $cols;
+    grid-template-rows: $rows;
+  }
+}
