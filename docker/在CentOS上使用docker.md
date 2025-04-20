@@ -902,9 +902,247 @@ Database changed
 
 #### 搜索 Nginx 镜像
 
+```sh
+docker search nginx
+```
+
 #### 拉取 Nginx 镜像
+
+```sh
+docker pull nginx
+```
 
 #### 创建容器
 
-#### 测试访问
+```sh
+# 在 /root 目录下创建 nginx 目录用于存储 nginx 数据信息
+mkdir ~/nginx
+cd ~/nginx
+mkdir donf
+cd conf
+# 在 ~/nginx/conf/ 下创建 nginx.conf 文件，粘贴下面内容
+vim nginx.conf
+```
 
+```sh
+user nginx;
+worker_processes  1;
+ 
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+ 
+ 
+events {
+    worker_connections  1024;
+}
+ 
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+ }
+```
+
+```sh
+docker run -id --name c_nginx \
+-p 80:80 \
+-v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf \
+-v $PWD/logs:/var/log/nginx \
+-v $PWD/html:/usr/share/nginx/html \
+nginx
+```
+
+- 参数说明：
+  - **-p 80:80**：将容器的80端口映射到宿主机的 80 端口
+  - **-v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf**：将主机当前目录下的 /conf/nginx.conf 挂载到容器的 /etc/nginx/nginx.conf。配置目录
+  - **-v $PWD/logs:/var/log/nginx**：将主机当前目录下的 logs 目录挂在到容器的 /var/log/nginx。日志目录
+
+配置 nginx 的默认页面
+
+```sh
+cd nginx
+cd html
+vim index.html
+```
+
+```sh
+<h1>hello nginx docker</h1>
+```
+
+#### 使用外部及访问 nginx
+
+[![pE4bVRf.png](https://s21.ax1x.com/2025/04/20/pE4bVRf.png)](https://imgse.com/i/pE4bVRf)
+
+## Dockerfile
+
+### Docker 镜像原理
+
+> 思考：
+>
+> - Docker 镜像本质是什么？
+> - Docker 中的一个 centos 镜像为什么只有 200MB，而一个 centos 操作系统的 iso 文件要几个 G ？
+> - Docker 中一个 tomcat 镜像问什么有 500MB，而一个 tomcat 安装包只有 70 多 MB ？
+
+操作系统组成部分：
+
+- 进程调度子系统
+- 进程通信子系统
+- 内存管理子系统
+- 设备管理子系统
+- **文件管理子系统**
+- 网络通信子系统
+- 作业控制子系统
+
+Linux 文件系统由 bootfs 和 rootfs 两部分组成
+
+[![pE4buLQ.png](https://s21.ax1x.com/2025/04/20/pE4buLQ.png)](https://imgse.com/i/pE4buLQ)
+
+- bootfs：包含 bootloader（引导加载程序）和 kernel（内核）
+- rootfs：root 文件系统，包含的就是典型 Linux 系统中的 /dev, /porc, /bin, /etc 等标准目录和文件
+- 不同的 linux 发行版，bootfs 基本一样，而 rootfs 不同，如 ubuntu，centos 等
+
+
+
+Docker 镜像是由特殊的文件系统叠加而成，最底端是 bootfs，并使用宿主机的 bootfs。第二层是 root 文件系统 rootfs，称为base image。然后再往上可以叠加其他的镜像文件。
+
+同一文件系统（Union File System）技术能够将不同的层整合成一个文件系统，为这些层提供了一个统一的视角，这样就隐藏了多层的存在，在用户的角度来看，只存在一个文件系统。
+
+一个镜像可以放在另一个镜像的上面。位于下面的镜像成为父镜像，最底部的镜像成为基础镜像。
+
+当从一个镜像启动容器时，Docker 会在最顶层加载一个读写文件系统作为容器
+
+[![pE4bgyD.png](https://s21.ax1x.com/2025/04/20/pE4bgyD.png)](https://imgse.com/i/pE4bgyD)
+
+- Docker 镜像本质是什么？
+
+  ​	是一个分层的文件系统
+
+- Docker 中的一个 centos 镜像为什么只有 200MB，而一个 centos 操作系统的 iso 文件要几个 G ？
+
+  ​	centos 的 iso 镜像文件包含 bootfs 和 rootfs，而 docker 的 centos 镜像复用操作系统系统的 bootfs，只有 rootfs 和其他镜像层
+
+- Docker 中一个 tomcat 镜像问什么有 500MB，而一个 tomcat 安装包只有 70 多 MB ？
+
+  ​	由于 docker 中镜像是分层的，tomcat 虽然只有 70 多 MB，但他需要依赖于父镜像和基础镜像，所有整个对外暴露的 tomcat 镜像大小 500 多 MB
+
+### 镜像制作
+
+#### 容器转为镜像
+
+```sh
+docker commit <容器id（或镜像名称）> <新镜像名称>:<版本号>
+```
+
+```sh
+docker save -o <压缩文件名称> <镜像名称>:<版本号>
+```
+
+```sh
+docker load -i <压缩文件名称>
+```
+
+[![pE4qM6O.png](https://s21.ax1x.com/2025/04/20/pE4qM6O.png)](https://imgse.com/i/pE4qM6O)
+
+镜像制作：
+
+```sh
+[root@VM-0-10-centos ~]# docker images
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+nginx        latest    4e1b6bae1e48   3 days ago    192MB
+tomcat       latest    15a617d619d4   10 days ago   467MB
+redis        5.0       99ee9af2b6b1   2 years ago   110MB
+[root@VM-0-10-centos ~]# docker ps -a
+CONTAINER ID   IMAGE       COMMAND                  CREATED             STATUS             PORTS                                       NAMES
+601084fdd3ed   redis:5.0   "docker-entrypoint.s…"   13 minutes ago      Up 13 minutes      0.0.0.0:6379->6379/tcp, :::6379->6379/tcp   c_redis
+9101c26d2537   tomcat      "catalina.sh run"        14 minutes ago      Up 14 minutes      0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   c_tomcat
+219eac58f02d   nginx       "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:80->80/tcp, :::80->80/tcp           c_nginx
+[root@VM-0-10-centos ~]# docker commit 219eac58f02d itheima_nginx:1.0
+sha256:78715e085bb0d1fa72e81acbe6ca189a733f3250db92461ee755eedf43361120
+[root@VM-0-10-centos ~]# docker images
+REPOSITORY      TAG       IMAGE ID       CREATED         SIZE
+itheima_nginx   1.0       78715e085bb0   3 seconds ago   192MB
+nginx           latest    4e1b6bae1e48   3 days ago      192MB
+tomcat          latest    15a617d619d4   10 days ago     467MB
+redis           5.0       99ee9af2b6b1   2 years ago     110MB
+[root@VM-0-10-centos ~]# docker save -o itheima_nginx.tar itheima_nginx:1.0
+[root@VM-0-10-centos ~]# ll
+total 192080
+drwxr-xr-x 2 root    root      4096 Apr 20 11:43 conf
+drwxr-xr-x 8 polkitd root      4096 Apr 20 15:00 data
+-rw------- 1 root    root 196666368 Apr 20 20:28 itheima_nginx.tar
+drwxr-xr-x 2 root    root      4096 Apr 20 11:43 logs
+drwxr-xr-x 5 root    root      4096 Apr 20 11:37 mysql
+drwxr-xr-x 5 root    root      4096 Apr 20 19:04 nginx
+[root@VM-0-10-centos ~]# docker rmi -f 78715e0
+Untagged: itheima_nginx:1.0
+Deleted: sha256:78715e085bb0d1fa72e81acbe6ca189a733f3250db92461ee755eedf43361120
+Deleted: sha256:ad100d8ac184d2443f5b2b3840bc8db5fa0f5d4a76bc94e2b7e7c374200b8e4a
+[root@VM-0-10-centos ~]# docker images
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+nginx        latest    4e1b6bae1e48   3 days ago    192MB
+tomcat       latest    15a617d619d4   10 days ago   467MB
+redis        5.0       99ee9af2b6b1   2 years ago   110MB
+[root@VM-0-10-centos ~]# docker load -i itheima_nginx.tar
+1cf6e41f8542: Loading layer [==================================================>]  14.85kB/14.85kB
+Loaded image: itheima_nginx:1.0
+[root@VM-0-10-centos ~]# docker images
+REPOSITORY      TAG       IMAGE ID       CREATED              SIZE
+itheima_nginx   1.0       78715e085bb0   About a minute ago   192MB
+nginx           latest    4e1b6bae1e48   3 days ago           192MB
+tomcat          latest    15a617d619d4   10 days ago          467MB
+redis           5.0       99ee9af2b6b1   2 years ago          110MB
+```
+
+> 注意：使用这种方式制作出的镜像不包含数据卷中的数据。
+
+#### Dockerfile
+
+##### Dockerfile 概念
+
+Dockerfile 是一个文本文件，包含了一条条的指令，每一条指令构建一层，基于基础镜像，最终构建出一个新的镜像。
+
+对于开发人员：可以为开发团队提供一个完全一致的开发环境
+
+对于测试人员：可以直接拿开发时所构建的镜像或者通过 Dockerfile 文件构建一个新的镜像开始工作了
+
+对于运维人员：在部署时，可以实现应用的无缝移植
+
+
+
+Dockerfile关键字：
+
+| 关键字      | 作用                     | 备注                                                         |
+| ----------- | ------------------------ | ------------------------------------------------------------ |
+| FROM        | 指定父镜像               | 指定dockerfile基于那个image构建                              |
+| MAINTAINER  | 作者信息                 | 用来标明这个dockerfile谁写的                                 |
+| LABEL       | 标签                     | 用来标明dockerfile的标签 可以使用Label代替Maintainer 最终都是在docker image基本信息中可以查看 |
+| RUN         | 执行命令                 | 执行一段命令 默认是/bin/sh 格式: RUN command 或者 RUN ["command" , "param1","param2"] |
+| CMD         | 容器启动命令             | 提供启动容器时候的默认命令 和ENTRYPOINT配合使用.格式 CMD command param1 param2 或者 CMD ["command" , "param1","param2"] |
+| ENTRYPOINT  | 入口                     | 一般在制作一些执行就关闭的容器中会使用                       |
+| COPY        | 复制文件                 | build的时候复制文件到image中                                 |
+| ADD         | 添加文件                 | build的时候添加文件到image中 不仅仅局限于当前build上下文 可以来源于远程服务 |
+| ENV         | 环境变量                 | 指定build时候的环境变量 可以在启动的容器的时候 通过-e覆盖 格式ENV name=value |
+| ARG         | 构建参数                 | 构建参数 只在构建的时候使用的参数 如果有ENV 那么ENV的相同名字的值始终覆盖arg的参数 |
+| VOLUME      | 定义外部可以挂载的数据卷 | 指定build的image那些目录可以启动的时候挂载到文件系统中 启动容器的时候使用 -v 绑定 格式 VOLUME ["目录"] |
+| EXPOSE      | 暴露端口                 | 定义容器运行的时候监听的端口 启动容器的使用-p来绑定暴露端口 格式: EXPOSE 8080 或者 EXPOSE 8080/udp |
+| WORKDIR     | 工作目录                 | 指定容器内部的工作目录 如果没有创建则自动创建 如果指定/ 使用的是绝对地址 如果不是/开头那么是在上一条workdir的路径的相对路径 |
+| USER        | 指定执行用户             | 指定build或者启动的时候 用户 在RUN CMD ENTRYPONT执行的时候的用户 |
+| HEALTHCHECK | 健康检查                 | 指定监测当前容器的健康监测的命令 基本上没用 因为很多时候 应用本身有健康监测机制 |
+| ONBUILD     | 触发器                   | 当存在ONBUILD关键字的镜像作为基础镜像的时候 当执行FROM完成之后 会执行 ONBUILD的命令 但是不影响当前镜像 用处也不怎么大 |
+| STOPSIGNAL  | 发送信号量到宿主机       | 该STOPSIGNAL指令设置将发送到容器的系统调用信号以退出。       |
+| SHELL       | 指定执行脚本的shell      | 指定RUN CMD ENTRYPOINT 执行命令的时候 使用的shell            |
