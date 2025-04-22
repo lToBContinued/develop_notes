@@ -673,7 +673,7 @@ docker run -it --name=c3 -v /volume centos:7 /bin/bash
 
 在 Mounts 中，Source 是容器所挂载的数据卷的目录，Destination 是容器中数据的目录。
 
-2. 创建启动 c1 c3 容器，使用 **--volumes-from** 参数 设置数据卷
+2. 创建启动 c1 c2 容器，使用 **--volumes-from** 参数 设置数据卷
 
 ```sh
 [root@VM-0-10-centos ~]# docker run -it --name=c1 --volumes-from c3 centos:7
@@ -1124,7 +1124,7 @@ Dockerfile 是一个文本文件，包含了一条条的指令，每一条指令
 
 
 
-Dockerfile关键字：
+Dockerfile关键字：https://docs.docker.com/reference/dockerfile/
 
 | 关键字      | 作用                     | 备注                                                         |
 | ----------- | ------------------------ | ------------------------------------------------------------ |
@@ -1146,3 +1146,361 @@ Dockerfile关键字：
 | ONBUILD     | 触发器                   | 当存在ONBUILD关键字的镜像作为基础镜像的时候 当执行FROM完成之后 会执行 ONBUILD的命令 但是不影响当前镜像 用处也不怎么大 |
 | STOPSIGNAL  | 发送信号量到宿主机       | 该STOPSIGNAL指令设置将发送到容器的系统调用信号以退出。       |
 | SHELL       | 指定执行脚本的shell      | 指定RUN CMD ENTRYPOINT 执行命令的时候 使用的shell            |
+
+##### 使用 Dockerfile 部署 Express 应用
+
+1. 将 Express 项目拷贝到 docker-files 文件夹
+2. 编写 Dockerfile 文件
+3. 运行
+
+```sh
+[root@VM-0-10-centos ~]# cd docker-files
+[root@VM-0-10-centos docker-files]# vim express_dockerfile
+```
+
+```sh
+FROM node:18-alpine
+
+LABEL maintainer="ToBContinued <123456@qq.com>"
+
+WORKDIR /app
+
+COPY ./back/package*.json ./
+RUN npm install
+
+COPY ./back .
+
+EXPOSE 3000
+```
+
+- **FROM node:18-alpine**：这行代码指定了构建镜像所基于的基础镜像。`node:18-alpine` 表示使用 Node.js 18 版本的 Alpine Linux 变体作为基础镜像。Alpine Linux 是一种轻量级的 Linux 发行版，镜像体积较小，能够有效减少最终镜像的大小。
+- **LABEL maintainer="ToBContinued <123456@qq.com>"**：`LABEL` 指令用于为镜像添加元数据，这些元数据可以包含镜像的作者、描述、版本等信息。在这里，`maintainer` 是一个常用的元数据标签，它表明了该镜像的维护者信息，即 `ToBContinued`，邮箱为 `123456@qq.com`。
+- **WORKDIR /app**：`WORKDIR` 指令用于设置镜像中的工作目录。在后续的 `COPY`、`RUN`、`CMD` 等指令执行时，如果没有特别指定路径，就会以这个工作目录作为基准。这里将工作目录设置为 `/app`，意味着后续的操作大多会在 `/app` 目录下进行。
+- **COPY ./back/package*.json ./**：`COPY` 指令用于将构建上下文（即运行 `docker build` 命令时指定的目录）中的文件或目录复制到镜像中的指定位置。这里将构建上下文里 `./back` 目录下所有以 `package` 开头、以 `.json` 结尾的文件（通常是 `package.json` 和 `package-lock.json`）复制到镜像的当前工作目录（也就是 `/app`）。这样做的好处是，当只修改了项目代码而 `package.json` 未改变时，Docker 可以利用缓存，避免重复安装依赖。
+- **RUN npm install**：`RUN` 指令用于在镜像构建过程中执行命令。这里执行 `npm install` 命令，它会根据 `package.json` 和 `package-lock.json` 文件来安装项目所需的所有依赖。由于前面已经复制了 `package*.json` 文件，所以可以在安装依赖时利用 Docker 的缓存机制，提高构建效率。
+- **COPY ./back .**：将构建上下文里 `./back` 目录下的所有文件和目录复制到镜像的当前工作目录 `/app`。此时，依赖已经安装完成，再复制项目的其余代码，这样可以避免因代码修改而导致的依赖重复安装。
+- **EXPOSE 3000**：`EXPOSE` 指令用于声明容器在运行时会监听的端口。这里声明容器会监听 3000 端口，但这只是一个声明，并不会实际进行端口映射。在运行容器时，需要使用 `-p` 选项来进行端口映射，将容器内的端口映射到宿主机的端口。
+
+```sh
+[root@VM-0-10-centos ~]docker build -f express_dockerfile -t express_app:1.0 .
+[root@VM-0-10-centos ~]docker run -d -p 3007:3000 --name express_app express_app:1.0
+```
+
+## docker 网络
+
+docker 网络可以实现容器间的通信。
+
+- 默认情况下，**同一网络内的容器可以直接通信**，无需通过外部 IP 或端口暴露。
+
+
+- 例如，你的 Express 容器（`express_app`）和 MySQL 容器（`mysql`）若在同一网络中，Express 可以直接通过容器名 `mysql` 访问数据库，而无需配置复杂的 IP 地址。
+
+### 通过容器 ip 互相访问
+
+```sh
+[root@VM-0-10-centos docker-files]# docker run -d -p 88:80 --name app1 nginx
+75b5cf74888f2e711ade8bf3274ff888ff65b7274ad6c9559b48ba05b9c8c84d
+[root@VM-0-10-centos docker-files]# docker run -d -p 99:80 --name app2 nginx
+09e093667d157430f3c8336945764dcf2dcb1d8e613cd1150292a66131c8e5ff
+[root@VM-0-10-centos docker-files]# docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS                               NAMES
+09e093667d15   nginx     "/docker-entrypoint.…"   9 seconds ago    Up 8 seconds    0.0.0.0:99->80/tcp, :::99->80/tcp   app2
+75b5cf74888f   nginx     "/docker-entrypoint.…"   18 seconds ago   Up 17 seconds   0.0.0.0:88->80/tcp, :::88->80/tcp   app1
+[root@VM-0-10-centos docker-files]# docker exec -it app1 bash
+root@75b5cf74888f:/# curl http://175.27.252.115:99
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+> 这样通过 app1 访问 app2 的过程是：app1 → 机器 ip → 机器 99 端口 → app2，这相当于同事A在同事B的旁边办公，当A要和B说话时，A先跑到了公司大楼外面，在进入办公室的门，和B交流。
+
+通过 ip a 可以看到所有的网卡：
+
+```sh
+[root@VM-0-10-centos docker-files]# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 8500 qdisc mq state UP group default qlen 1000
+    link/ether 52:54:00:e4:b6:63 brd ff:ff:ff:ff:ff:ff
+    inet 10.206.0.10/20 brd 10.206.15.255 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::5054:ff:fee4:b663/64 scope link 
+       valid_lft forever preferred_lft forever
+3: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 02:42:d2:6d:f1:14 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:d2ff:fe6d:f114/64 scope link 
+       valid_lft forever preferred_lft forever
+5: veth9c8cc75@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 56:2e:dd:75:c5:b1 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::542e:ddff:fe75:c5b1/64 scope link 
+       valid_lft forever preferred_lft forever
+7: veth0ce862e@if6: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default 
+    link/ether 22:84:a6:77:5b:e4 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet6 fe80::2084:a6ff:fe77:5be4/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+其中有一个网卡是 docker 0，docker 启动的每一个应用都加入了 docker 0 这个网络环境，而且每一个应用，docker 都会再次为它分配 ip，可以使用 docker inspect <容器> 来查看。
+
+```sh
+[root@VM-0-10-centos docker-files]# docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                               NAMES
+09e093667d15   nginx     "/docker-entrypoint.…"   8 minutes ago   Up 8 minutes   0.0.0.0:99->80/tcp, :::99->80/tcp   app2
+75b5cf74888f   nginx     "/docker-entrypoint.…"   8 minutes ago   Up 8 minutes   0.0.0.0:88->80/tcp, :::88->80/tcp   app1
+[root@VM-0-10-centos docker-files]# docker inspect app1
+# 其他信息......
+"Networks": {
+                "bridge": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "MacAddress": "02:42:ac:11:00:02",
+                    "NetworkID": "73864c865cc4dc3feab98de5eef97caa295e0f178d91e8afcc83306ffd3beb18",
+                    "EndpointID": "d9a4df1f39feed00adcaaa61e7d029872fc929826b3f02f0f157aadec3e9cfd5",
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DriverOpts": null,
+                    "DNSNames": null
+                }
+            }
+```
+
+Gateway 是 app1 的网关地址，IPAddress 是 app1 的 ip 地址。同样 app2 也有这些配置。因此容器之间通过这个 ip 就可以互相访问。
+
+```sh
+[root@VM-0-10-centos docker-files]# docker exec -it app1 bash
+root@75b5cf74888f:/# curl http://172.17.0.3:80
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+> 总结：docker 为每个容器分配唯一 ip，使用`容器 ip + 容器端`口可以互相访问
+>
+> 
+>
+> 但是，ip 由于各种原因可能会发生变化，所以访问可能不稳定。因此 docker 提供了一种自定义网络的方式，docker0 默认不支持主机域名，需要我们创建一个自定义网络，然后容器的名字就可以当做主机的域名作为一个稳定的访问地址。
+
+[![pE5fhNT.png](https://s21.ax1x.com/2025/04/22/pE5fhNT.png)](https://imgse.com/i/pE5fhNT)
+
+### docker 自定义网络
+
+创建自定义网络
+
+```sh
+[root@VM-0-10-centos ~]# docker network create mynet
+f94596d12a14c91440c2677689928d87072e550c44151ed69a5387484908ea75
+[root@VM-0-10-centos ~]# docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+73864c865cc4   bridge    bridge    local
+cc305337a24a   host      host      local
+f94596d12a14   mynet     bridge    local
+b420506f9052   none      null      local
+```
+
+```sh
+[root@VM-0-10-centos ~]# docker run -d -p 88:80 --name app1 --network mynet nginx
+80df77e40fbf266e25cc4f1e39bee813346045eba43819edee51d3760d38c1b6
+[root@VM-0-10-centos ~]# docker run -d -p 99:80 --name app2 --network mynet nginx
+af8795349eaf0e3fa6869e3503abdabeab369ee0a13ddfb34c27b3decbedfde7
+[root@VM-0-10-centos ~]# docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS                               NAMES
+af8795349eaf   nginx     "/docker-entrypoint.…"   9 seconds ago    Up 9 seconds    0.0.0.0:99->80/tcp, :::99->80/tcp   app2
+80df77e40fbf   nginx     "/docker-entrypoint.…"   23 seconds ago   Up 23 seconds   0.0.0.0:88->80/tcp, :::88->80/tcp   app1
+[root@VM-0-10-centos ~]# docker inspect app1
+# 其他信息......
+"Networks": {
+                "mynet": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "MacAddress": "02:42:ac:12:00:02",
+                    "NetworkID": "f94596d12a14c91440c2677689928d87072e550c44151ed69a5387484908ea75",
+                    "EndpointID": "e42ba342eb4cdd90099181314d36e5aba8152654cc6e403c76bd76996914fe24",
+                    "Gateway": "172.18.0.1",
+                    "IPAddress": "172.18.0.2",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DriverOpts": null,
+                    "DNSNames": [
+                        "app1",
+                        "80df77e40fbf"
+                    ]
+                }
+            }
+```
+
+可以发现此时的 Gateway 和 IPAddress 都发生了变化
+
+```sh
+[root@VM-0-10-centos ~]# docker exec -it app1 bash
+root@80df77e40fbf:/# curl http://app2:80
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+## docker 服务编排
+
+微服务架构的应用系统中一般包含若干个微服务，每个微服务一般都会部署多个实例，如果每个微服务都要手动启停，维护的工作量会很大。
+
+- 要从Dockerfilebuildimage或者去dockerhub拉取image
+- 要创建多个container
+- 要管理这些container(启动停止删除)
+
+**服务编排**: 按照一定的业务规则批量管理容器
+
+**Docker Compose**：Docker Compose是一个编排多容器分布式部署的工具，提供命令集管理容器化应用的完整开发周期，包括服务构建启动和停止。
+
+使用步骤:
+
+1. 利用 Dockerfile 定义运行环境镜像
+2. 使用 docker-compose.yml 定义组成应用的各服务
+3. 运行 docker-compose up 启动应用
+
+### 安装 Docker Compose
+
+```sh
+# Compose目前已经完全支持Linux、Mac OS和Windows，在我们安装Compose之前，需要先安装Docker。下面我 们以编译好的二进制包方式安装在Linux系统中。
+curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+# 设置文件可执行权限
+chmod +x /usr/local/bin/docker-compose
+# 查看版本信息
+docker-compose --version
+```
+
+### 卸载Docker Compose
+
+````sh
+# 二进制包方式安装的，删除二进制文件即可
+rm /usr/local/bin/docker-compose
+````
+
+### 使用 Docker Compose 编排 nginx + express
+
+https://docs.docker.com/reference/compose-file/
+
+顶级元素：
+
+- **name**：名字
+- **services**：服务
+- **networks**：网络
+- **volumes**：卷
+- configs：配置
+- secrets：秘钥
+
+compose.yaml
+
+```yaml
+name: express-app
+
+services:
+	mysql:
+		container_name: mysql
+		image: mysql:8.0
+		ports:
+			- "3306:3306"
+		environment:
+			- MYSQL_ROOT_PASSWORD=123456
+			- MYSQL_DATABASE=myDb
+		volumes:
+			- mysql-data:/var/lib/mysql
+			- /app/myconf:/etc/mysql/conf.d
+		restart: always
+		networks:
+			- mynet
+	
+	express_app:
+		container_name: express_app
+		image: express_app:1.0
+		ports:
+			- "3007:3000"
+		restart: always
+		networks:
+		 - mynet
+		depends_on:
+			- mysql 
+
+volumes:
+	mysql-data:
+networks:
+	mynet:
+```
+
+```sh
+docker compose [-f 文件名] up -d
+```
+
