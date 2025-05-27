@@ -370,3 +370,114 @@ console.log(p1.getTime())
 // 该对象的创建时间为: Tue May 27 2025 16:00:29 GMT+0800 (中国标准时间)
 ```
 
+## 属性装饰器
+
+ts 中属性饰器的旧语法和新语法差异比较大，我们首先来讨论旧语法中的内容：
+
+在 ts 新版语法中，想要使用旧语法的装饰器需要在执行编译命令时，指定使用实验性装饰器选项和编译成的目标语法
+
+```bash
+tsc --target ES6 --experimentalDecorators -w ./index.ts
+```
+
+### 基本语法
+
+```typescript
+function Demo(target: object, propertyKey: string): void {
+  console.log(target, propertyKey)
+}
+
+class Person {
+  @Demo name: string
+  age: number
+  static school: string
+
+  constructor(name: string, age: number) {
+    this.name = name
+    this.age = age
+  }
+}
+```
+
+参数说明：
+
+- target：对于静态属性来说值是类，对于实例属性来说值是类的原型对象
+- propertyKey：属性名
+
+[![pVpPMM4.png](https://s21.ax1x.com/2025/05/27/pVpPMM4.png)](https://imgse.com/i/pVpPMM4)
+
+### 关于属性遮蔽
+
+如下代码中：当构造器中的 this.age = age 试图在实例上赋值时，实际上是调用了原型上 age 属性的 set 方法。
+
+```typescript
+class Person {
+  name: string
+  age: number
+
+  constructor(name: string, age: number) {
+    this.name = name
+    this.age = age
+  }
+}
+
+let value = 130
+Object.defineProperty(Person.prototype, 'age', {
+  get() {
+    return value
+  },
+  set(val) {
+    value = val
+  }
+})
+
+const p1 = new Person('张三', 18)
+
+console.log(p1)
+```
+
+[![pVpP7F0.png](https://s21.ax1x.com/2025/05/27/pVpP7F0.png)](https://imgse.com/i/pVpP7F0)
+
+### 应用举例
+
+> 需求：定义一个 State 属性装饰器，来监视属性的修改。
+
+```typescript
+function State(target: object, propertyKey: string) {
+  let key = `__${propertyKey}`
+  Object.defineProperty(target, propertyKey, {
+    get() {
+      return this[key]
+    },
+    set(newValue) {
+      console.log(`${propertyKey}的最新值为：${newValue}`)
+      this[key] = newValue
+    },
+    enumerable: true,
+    configurable: true
+  })
+}
+
+class Person {
+  name: string
+  @State age: number
+
+  constructor(name: string, age: number) {
+    this.name = name
+    this.age = age
+  }
+
+  speak() {
+    console.log('你好呀！')
+  }
+}
+
+const p1 = new Person('张三', 18)
+const p2 = new Person('李四', 20)
+
+p1.age = 30
+p2.age = 40
+
+console.log(p1)
+console.log(p2)
+```
