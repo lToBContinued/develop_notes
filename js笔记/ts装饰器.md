@@ -383,7 +383,7 @@ tsc --target ES6 --experimentalDecorators -w ./index.ts
 ### 基本语法
 
 ```typescript
-function Demo(target: object, propertyKey: string): void {
+function Demo(target: object, propertyKey: string | symbol): void {
   console.log(target, propertyKey)
 }
 
@@ -401,7 +401,7 @@ class Person {
 
 参数说明：
 
-- target：对于静态属性来说值是类，对于实例属性来说值是类的原型对象
+- target：对于**静态属性**来说值是**类**，对于**实例属性**来说值是**类的原型对象**
 - propertyKey：属性名
 
 [![pVpPMM4.png](https://s21.ax1x.com/2025/05/27/pVpPMM4.png)](https://imgse.com/i/pVpPMM4)
@@ -443,7 +443,7 @@ console.log(p1)
 > 需求：定义一个 State 属性装饰器，来监视属性的修改。
 
 ```typescript
-function State(target: object, propertyKey: string) {
+function State(target: object, propertyKey: string | symbol) {
   let key = `__${propertyKey}`
   Object.defineProperty(target, propertyKey, {
     get() {
@@ -481,3 +481,217 @@ p2.age = 40
 console.log(p1)
 console.log(p2)
 ```
+## 方法装饰器
+
+### 基本语法
+
+```typescript
+function Demo(target: Object, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+  console.log('target', target)
+  console.log('propertyKey', propertyKey)
+  console.log('descriptor', descriptor)
+}
+
+class Person {
+  constructor(
+    public name: string,
+    public age: number,
+  ) {}
+
+  @Demo
+  speak() {
+    console.log(`你好，我是${this.name}，我的年龄：${this.age}`)
+  }
+
+  static isAdult(age: number) {
+    return age >= 18
+  }
+}
+
+```
+
+参数说明：
+
+- target：被装饰的方法所在的：（对于类的静态方法）类的构造函数，或者（对于类的实例方法）类的原型。
+- propertyKey：所装饰方法的方法名，类型为`string|symbol`。
+- descriptor：所装饰方法的描述对象。
+
+[![pVpuUr6.png](https://s21.ax1x.com/2025/05/28/pVpuUr6.png)](https://imgse.com/i/pVpuUr6)
+
+### 应用举例
+
+> 需求：
+>
+> 1. 定义一个 Logger 方法装饰器，用于在方法执行前和执行后，均追加一些额外的逻辑。
+> 2. 定义一个 Validate 方法装饰器，用于验证数据。
+
+```typescript
+function Logger(target: Object, propertyKey: string, descriptor: PropertyDescriptor) {
+  // 存储原始方法
+  const original = descriptor.value
+  // 替换原始方法
+  descriptor.value = function (...agrs: any[]) {
+    console.log(`${propertyKey}开始执行......`)
+    const result = original.call(this, ...agrs)
+    console.log(`${propertyKey}执行完毕......`)
+    return result
+  }
+}
+
+function Validate(maxAge: number) {
+  return function (target: Object, propertyKey: string, descriptor: PropertyDescriptor) {
+    const original = descriptor.value
+    descriptor.value = function (...args: any[]) {
+      // 自定义验证逻辑
+      if (args[0] > maxAge) {
+        throw new Error('年龄不能超过120岁')
+      } else {
+        return original.apply(this, args)
+      }
+    }
+  }
+}
+
+class Person {
+  constructor(
+    public name: string,
+    public age: number,
+  ) {}
+
+  @Logger speak(str: string) {
+    console.log(`你好，我是${this.name}，我的年龄：${this.age}，${str}`)
+  }
+
+  @Validate(120)
+  static isAdult(age: number) {
+    return age >= 18
+  }
+}
+
+const p1 = new Person('张三', 18)
+p1.speak('hello')
+console.log(Person.isAdult(120))
+```
+
+[![pVpQwZV.png](https://s21.ax1x.com/2025/05/28/pVpQwZV.png)](https://imgse.com/i/pVpQwZV)
+
+## 存取器装饰器
+
+### 基本语法
+
+存取器装饰器用来装饰类的存取器（accessor）。所谓“存取器”指的是某个属性的取值器（getter）和存值器（setter）。
+
+存取器装饰器的类型定义，与方法装饰器一致。
+
+```typescript
+function Demo(target: Object, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+  console.log('target：', target)
+  console.log('propertyKey：', propertyKey)
+  console.log('descriptor：', descriptor)
+}
+
+class Person {
+  @Demo
+  get address() {
+    return '北京宏福科技园'
+  }
+
+  @Demo
+  static get Country() {
+    return '中国'
+  }
+}
+```
+
+参数说明：
+
+- target：
+  1. 对于实例访问器来说值是【所属类的原型对象】。
+  2. 对于静态访问器来说值是【所属类】。
+- propertyKey：访问器名称。
+- descriptor：描述对象。
+
+[![pVpQ6z9.png](https://s21.ax1x.com/2025/05/28/pVpQ6z9.png)](https://imgse.com/i/pVpQ6z9)
+
+### 应用举例
+
+> 需求：创建一个 RangeValidate 装饰器，用来规定输入的温度的范围
+
+```typescript
+function RangeValidate(min: number, max: number) {
+  return function (target: Object, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+    // 保存原始的setter
+    const originalSetter = descriptor.set
+    // 重写setter
+    descriptor.set = function (value: number) {
+      if (value < min || value > max) {
+        throw new Error(`${String(propertyKey)}的值应该在 ${min} 到 ${max} 之间!`)
+      } else {
+        // 如果值在范围内，且原始 setter 方法存在，则调用原始 setter 方法
+        return originalSetter?.call(this, value)
+      }
+    }
+  }
+}
+
+class Weather {
+  private _temp: number
+
+  constructor(temp: number) {
+    this._temp = temp
+  }
+
+  @RangeValidate(-50, 50)
+  set temp(value) {
+    console.log('setter触发')
+    this._temp = value
+  }
+
+  get temp() {
+    console.log('getter触发')
+    return this._temp
+  }
+}
+
+const w1 = new Weather(28)
+w1.temp = 25
+console.log(w1.temp)
+w1.temp = 100
+console.log(w1.temp)
+```
+
+[![pVplMl9.png](https://s21.ax1x.com/2025/05/28/pVplMl9.png)](https://imgse.com/i/pVplMl9)
+
+## 参数装饰器
+
+### 基本语法
+
+```typescript
+function Demo(target: Object, propertyKey: string | symbol, parameterIndex: number) {
+  console.log('target：', target)
+  console.log('propertyKey：', propertyKey)
+  console.log('parameterIndex：', parameterIndex)
+}
+
+class Person {
+  constructor(public name: string) {}
+
+  speak(@Demo message1: any, message2: any) {
+    console.log(`${this.name}想说：${message1},${message2}`)
+  }
+
+  static sayAddress(country: string, @Demo city: any) {
+    console.log(`我在${country}${city}`)
+  }
+}
+```
+
+参数说明：
+
+- target：
+  1. 如果修饰的是【实例方法】的参数，target 是类的 【原型对象】。
+  2. 如果修饰的是【静态方法】的参数，target 是【类】。
+- propertyKey：类所在的方法的名称。
+- parameterIndex：参数在函数参数列表中的索引，从 0 开始。
+
+[![pVp1l9g.png](https://s21.ax1x.com/2025/05/28/pVp1l9g.png)](https://imgse.com/i/pVp1l9g)
