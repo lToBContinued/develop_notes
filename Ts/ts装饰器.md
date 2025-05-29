@@ -1,4 +1,4 @@
-# 装饰器
+# 装饰器（旧版）
 
 ## 什么是装饰器
 
@@ -695,3 +695,6 @@ class Person {
 - parameterIndex：参数在函数参数列表中的索引，从 0 开始。
 
 [![pVp1l9g.png](https://s21.ax1x.com/2025/05/28/pVp1l9g.png)](https://imgse.com/i/pVp1l9g)
+
+# 装饰器（新版）
+
