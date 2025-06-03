@@ -227,3 +227,148 @@ const a: A = {
 ```
 
 上面示例中，脚本`a.ts`定义了一个接口`A`，脚本`b.ts`为这个接口添加了属性`y`。`declare module './a' {}`表示对`a.ts`里面的模块，进行类型声明，而同名 interface 会自动合并，所以等同于扩展类型。
+
+> 使用这种语法进行模块的类型扩展时，有两点需要注意：
+>
+> （1）`declare module NAME`语法里面的模块名`NAME`，跟 import 和 export 的模块名规则是一样的，且必须跟当前文件加载该模块的语句写法（上例`import { A } from './a'`）保持一致。
+>
+> （2）不能创建新的顶层类型。也就是说，只能对`a.ts`模块中已经存在的类型进行扩展，不允许增加新的顶层类型，比如新定义一个接口`B`。
+>
+> （3）不能对默认的`default`接口进行扩展，只能对 export 命令输出的命名接口进行扩充。这是因为在进行类型扩展时，需要依赖输出的接口名。
+
+-----
+
+某些第三方模块，原始作者没有提供接口类型，这时可以在自己的脚本顶部加上下面一行命令。
+
+```typescript
+declare module "模块名"
+
+// 例子
+declare module 'nprogress'
+declare module '@wangeditor/editor-for-vue'
+```
+
+加上上面的命令以后，外部模块即使没有类型，也可以通过编译。但是，从该模块输入的所有接口都将为`any`类型。
+
+-----
+
+declare module 描述的模块名可以使用通配符。
+
+```typescript
+declare module 'my-plugin-*' {
+  interface PluginOptions {
+    enabled: boolean
+    priority: number
+  }
+
+  function initialize(options: PluginOptions): void
+  export = initialize
+}
+```
+
+上面示例中，模块名`my-plugin-*`表示适配所有以`my-plugin-`开头的模块名（比如`my-plugin-logger`）。
+
+## declare global
+
+如果要为 JavaScript 引擎的原生对象添加属性和方法，可以使用`declare global {}`语法。
+
+```typescript
+export {}
+
+declare global {
+  interface String {
+    toSmallString(): string
+  }
+}
+
+String.prototype.toSmallString = (): string => {
+  // ......其它代码
+  return ''
+}
+```
+
+上面示例中，为 JavaScript 原生的`String`对象添加了`toSmallString()`方法。declare global 给出这个新增方法的类型描述。
+
+这个示例第一行的空导出语句`export {}`，作用是强制编译器将这个脚本当作模块处理。这是因为`declare global`必须用在模块里面。
+
+-----
+
+下面的示例是为 window 对象添加一个属性`myAppConfig`。
+
+```typescript
+export {}
+
+declare global {
+  interface Window {
+    myAppConfig: {
+      theme: string
+      apiUrl: string
+      // ...其它配置项
+    }
+  }
+}
+
+const config = window.myAppConfig
+```
+
+declare global 只能扩充现有对象的类型描述，不能增加新的顶层类型。
+
+## declare enum
+
+declare 关键字给出 enum 类型描述的例子如下，下面的写法都是允许的。
+
+```typescript
+declare enum E1 {
+  A,
+  B
+}
+
+declare enum E2 {
+  A = 0,
+  B = 1
+}
+
+declare const enum E3 {
+  A,
+  B
+}
+
+declare const enum E4 {
+  A = 0,
+  b = 1
+}
+```
+
+## declare module 用于类型声明文件
+
+我们可以为每个模块脚本，定义一个`.d.ts`文件，把该脚本用到的类型定义都放在这个文件里面。但是，更方便的做法是为整个项目，定义一个大的`.d.ts`文件，在这个文件里面使用`declare module`定义每个模块脚本的类型。
+
+下面的示例是`node.d.ts`文件的一部分。
+
+```typescript
+declare module 'url' {
+  export interface Url {
+    protocol?: string
+    hostname?: string
+    port?: string
+  }
+
+  export function parse(urlStr: string, parseQueryString?, slashesDenoteHost?): Url
+}
+
+declare module 'path' {
+  export function normalize(p: string): string
+  export function join(...path: any[]): string
+  export let seq: string
+}
+```
+
+上面示例中，`url`和`path`都是单独的模块脚本，但是它们的类型都定义在`node.d.ts`这个文件里面。
+
+使用时，自己的脚本使用三斜杠命令，加载这个类型声明文件。
+
+```typescript
+/// <reference path='node.d.ts'/>
+```
+
+如果没有上面这一行命令，自己的脚本使用外部模块时，就需要在脚本里面使用 declare 命令单独给出外部模块的类型。
