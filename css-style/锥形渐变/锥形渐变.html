@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>锥形渐变</title>
+  <style>
+    .conic {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      /*conic-gradient 锥形渐变*/
+      /*background: conic-gradient(red, yellow, green, blue, red);*/
+      /*可以使用百分比设置每种颜色的渐变范围*/
+      /*background: conic-gradient(red 0%, yellow 10%, green 50%, blue, red);*/
+      /*可以使用角度设置每种颜色的渐变范围*/
+      background: conic-gradient(red 0deg, yellow 10deg, green 50deg, blue 300deg, red);
+    }
+    
+    .radiation {
+      width: 300px;
+      height: 300px;
+      background: repeating-conic-gradient(cornflowerblue 0deg 10deg, white 10deg 20deg);
+    }
+    
+    .loading {
+      --size: 100px;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      background: conic-gradient(transparent 0deg 60deg, #337eef);
+      animation: Loading 1s linear infinite;
+      /*使用calc(50% - 1px)的原因是可以消除锯齿*/
+      mask: radial-gradient(circle at center, transparent calc(40% - 1px), #000 40%);
+    }
+    
+    @keyframes Loading {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .layout {
+      width: 400px;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #ccc;
+      background-image: conic-gradient(#ccc 0 25%, #fff 25% 50%, #ccc 50% 75%, #fff 75% 100%);
+      background-size: 16px 16px;
+    }
+    
+    .layout img {
+      width: 150px;
+      height: 150px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 锥形渐变 -->
+  <div class="conic"></div>
+  <!-- 放射线效果 -->
+  <div class="radiation"></div>
+  <!-- loading效果 -->
+  <div class="loading"></div>
+  <!-- 透明网格效果 -->
+  <div class="layout">
+    <img src="https://images.xxapi.cn/images/head/8154762629.jpg" alt="">
+  </div>
+</body>
+</html>
