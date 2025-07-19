@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>渐变色融合过渡</title>
+  <style>
+    @keyframes colorChange {
+      0%, 100% {
+        --color1: #FF0000; /* 红色 */
+        --color2: #FF8000; /* 橙色 */
+      }
+      10% {
+        --color1: #FF8000; /* 橙色 */
+        --color2: #FFFF00; /* 黄色 */
+      }
+      20% {
+        --color1: #FFFF00; /* 黄色 */
+        --color2: #80FF00; /* 黄绿 */
+      }
+      30% {
+        --color1: #00FF00; /* 绿色 */
+        --color2: #00FF80; /* 青绿 */
+      }
+      40% {
+        --color1: #00FFFF; /* 青色 */
+        --color2: #0080FF; /* 蓝青 */
+      }
+      50% {
+        --color1: #0000FF; /* 蓝色 */
+        --color2: #8000FF; /* 蓝紫 */
+      }
+      60% {
+        --color1: #FF00FF; /* 品红 */
+        --color2: #FF0080; /* 玫红 */
+      }
+      70% {
+        --color1: #FF0080; /* 玫红 */
+        --color2: #FF0000; /* 红色 */
+      }
+      80% {
+        --color1: #FF6666; /* 浅红 */
+        --color2: #FFB366; /* 橙红 */
+      }
+      90% {
+        --color1: #FFB366; /* 橙红 */
+        --color2: #FFFF66; /* 浅黄 */
+      }
+    }
+    
+    @property --color1 {
+      syntax: "<color>";
+      inherits: true;
+      initial-value: #ff0000;
+    }
+    
+    @property --color2 {
+      syntax: "<color>";
+      inherits: true;
+      initial-value: #ff8000;
+    }
+    
+    :root {
+      --color1: #ff0000;
+      --color2: #ff8000;
+      --background-gradient: linear-gradient(-45deg, var(--color1), var(--color2));
+      animation: colorChange 20s linear infinite;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 60px auto;
+      width: fit-content;
+      position: relative;
+    }
+    
+    .element {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      background: var(--background-gradient);
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+    
+    .logo {
+      position: absolute;
+      top: 100px;
+      width: 150px;
+    }
+    
+    h1{
+      margin-top: 60px;
+      background: var(--background-gradient);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: brightness(70%);
+    }
+    
+    p{
+      margin: 0;
+      color: var(--color1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="element"></div>
+    <img src="https://cdn.qingnian8.com/project/chicken/chicken_color.png" class="logo">
+    <h1>@property自定义属性规则</h1>
+    <p>有趣的css</p>
+  </div>
+</body>
+</html>
