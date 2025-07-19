@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>order布局排序</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    .out {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 800px;
+      min-height: 300px;
+      margin: 50px auto;
+      padding-top: 30px;
+    }
+    
+    .out::before {
+      content: '';
+      display: block;
+      position: absolute;
+      top: -20px;
+      border-left: 10px transparent solid;
+      border-top: 10px transparent solid;
+      border-right: 10px transparent solid;
+      border-bottom: 10px #ccc solid;
+    }
+    
+    .out::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      display: block;
+      width: 1px;
+      height: 100%;
+      background-color: #ccc;
+    }
+    
+    .row {
+      display: flex;
+      justify-content: flex-start;
+      height: 300px;
+    }
+    
+    .time {
+      font-size: 30px;
+      font-weight: 700;
+    }
+    
+    .time, .content {
+      flex: 1;
+    }
+    
+    .drop {
+      position: relative;
+      width: 60px;
+    }
+    
+    .drop::before {
+      content: '';
+      position: absolute;
+      display: block;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #3B8EEA;
+      z-index: 999;
+    }
+    
+    .content {
+      width: 100%;
+      line-height: 1.5rem;
+    }
+    
+    .content img {
+      width: 100%;
+      border-radius: 10px;
+    }
+    
+    .row:nth-child(2n-1) .time {
+      text-align: right;
+    }
+    
+    .row:nth-child(2n) .time,
+    .row:nth-child(2n) p {
+      order: 1;
+      text-align: left;
+    }
+    
+    .row:nth-child(2n) .content {
+      order: -1;
+      text-align: right;
+    }
+    
+    .content p {
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="out">
+    <div class="row">
+      <div class="time">2025年</div>
+      <div class="drop"></div>
+      <div class="content">
+        <img
+          src="https://fastly.picsum.photos/id/1002/600/260.jpg?hmac=TWj_FxpEQvxD3eyj6j4BSd18XJoHzsVgE5IV0tXFClA"
+          alt=""
+        >
+        <p>
+          企业完成全球化布局，在亚太、欧洲设立创新中心，推出首款AI驱动的碳中和产品线，年营收突破500亿元。获评“全球最具可持续性企业”，启动火星技术研发实验室，探索太空经济。
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="time">2024年</div>
+      <div class="drop"></div>
+      <div class="content">
+        <img
+          src="https://fastly.picsum.photos/id/567/600/260.jpg?hmac=K9BrXAXg9eujg_j4K8huAIjfuOohwqJk3t46whVsdys"
+          alt=""
+        >
+        <p>
+          并购两家产业链上游科技公司，实现核心零部件自主生产。发布革命性量子计算商用平台，员工规模达1.2万人，研发投入占比升至18%，核心技术专利突破1万项。
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="time">2023年</div>
+      <div class="drop"></div>
+      <div class="content">
+        <img
+          src="https://fastly.picsum.photos/id/649/600/260.jpg?hmac=1YONuebdwOost5K-JMHaXWbfY2bV-_zxlvgn9zft9Bw"
+          alt=""
+        >
+        <p>
+          总部智慧园区落成，全部采用可再生能源。主导制定行业国际标准，与NASA合作开发太空材料技术。遭遇数据泄露危机后，网络安全评级跃居全球前三。
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="time">2022年</div>
+      <div class="drop"></div>
+      <div class="content">
+        <img
+          src="https://fastly.picsum.photos/id/233/600/260.jpg?hmac=xzmbgV0aehu4unmzI825FmfKRjyt1uMDqzzHfr3QNRM"
+          alt=""
+        >
+        <p>
+          上市首日市值破千亿，推出垂直领域大语言模型。东南亚工厂投产缓解供应链压力，但因芯片短缺被迫延迟智能家居产品线发布。
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="time">2021年</div>
+      <div class="drop"></div>
+      <div class="content">
+        <img
+          src="https://fastly.picsum.photos/id/927/600/260.jpg?hmac=Nw8ZzW3yd6mdV5LmRI6Oee-zExoMDM26SJemZH7P034"
+          alt=""
+        >
+        <p>
+          疫情下转型远程办公系统服务商，业绩逆势增长200%。收购生物识别技术团队，推出首款医疗级可穿戴设备。创始人入选《时代》百大人物。
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
