@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>灯光扫描文字效果</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: #1a1a1a;
+    }
+    
+    h1 {
+      position: relative;
+      font-size: 200px;
+      color: #484848;
+    }
+    
+    h1::after {
+      content: 'HELLO WORLD';
+      color: transparent;
+      background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+      background-clip: text;
+      position: absolute;
+      top: 0;
+      left: 0;
+      clip-path: circle(10% at 0 50%);
+      animation: move 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes move {
+      100% {
+        clip-path: circle(10% at 100% 50%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>HELLO WORLD</h1>
+</body>
+</html>

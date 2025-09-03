@@ -189,45 +189,63 @@ export default defineConfig(({ mode, command }) => {
 新建文件： 根目录\\src\\components\\SvgIcon\\index.vue
 
 ```vue
-
 <template>
-  <svg aria-hidden="true" class="svg-icon">
+  <svg aria-hidden="true" class="svg-icon" :style="{ width: symbolSize, height: symbolSize }">
     <use :xlink:href="symbolId" :fill="color" />
   </svg>
 </template>
 
-<script setup>
-  import { computed } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 
-  const props = defineProps({
-    prefix: {
-      type: String,
-      default: 'icon',
-    },
-    name: {
-      type: String,
-      default: '',
-    },
-    color: {
-      type: String,
-      default: '',
-    },
-  })
+interface DefineProps {
+  prefix: string
+  name: string
+  color: string
+  size: string
+}
 
-  const symbolId = computed(() => {
-    return `#${ props.prefix }-${ props.name }`
-  })
+const props = withDefaults(defineProps<DefineProps>(), {
+  prefix: 'icon',
+  name: '',
+  color: '',
+  size: '16px',
+})
+
+const symbolId = computed(() => {
+  return `#${props.prefix}-${props.name}`
+})
+const symbolSize = computed(() => {
+  const sizeStr = props.size.trim()
+  const matchResult = sizeStr.match(/^([+-]?\d+(\.\d+)?)([a-zA-Z%]*)$/)
+  if (!matchResult) {
+    return sizeStr
+  }
+  const numberPart = matchResult[1]
+  const unitPart = matchResult[3]
+  if (!unitPart) {
+    return `${numberPart}px`
+  } else if (unitPart.toLowerCase() === 'px') {
+    return sizeStr
+  } else {
+    return sizeStr
+  }
+})
 </script>
 
 <style scoped lang="scss">
-  .svg-icon {
-    overflow: hidden;
-    width: 1em;
-    height: 1em;
-    fill: currentcolor;
-    vertical-align: -0.15em;
-  }
+.svg-icon {
+  overflow: hidden;
+
+  width: 1em;
+  height: 1em;
+
+  vertical-align: -0.15em;
+
+  fill: currentcolor;
+}
 </style>
+
 ```
 
 新建文件：根目录\\src\\plugin\\icon\\index.js

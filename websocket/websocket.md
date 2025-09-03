@@ -62,11 +62,11 @@ const ws = require('ws')
 ```js
 const ws = require('ws')
 
-const wss = new ws.WebSocketServer({ port: 8080 })
+const socket = new ws.WebSocketServer({ port: 8080 })
 
 // 或者直接在 ws 中结构赋值出 WebSocketServer 类
 // const { WebSocketServer } = require('ws')
-// const wss = new WebSocketServer({ port: 8080 })
+// const socket = new WebSocketServer({ port: 8080 })
 ```
 
 3. 与客户端建立连接
@@ -78,10 +78,11 @@ const wss = new ws.WebSocketServer({ port: 8080 })
 ```js
 const ws = require('ws')
 
-const wss = new ws.WebSocketServer({ port: 8080 })
+const socket = new ws.WebSocketServer({ port: 8080 })
 
-wss.on('connection', (ws, req) => {
-  ws.send('ws服务端连接成功！')
+socket.on('connection', (ws, req) => {
+  console.log('新用户连接成功')
+  ws.send('ws服务连接成功')
 })
 ```
 
@@ -96,25 +97,104 @@ wss.on('connection', (ws, req) => {
 
 ```js
 <template>
-  <div style="padding: 10px"></div>
+  <div class="chat-container">
+    <h2>聊天室</h2>
+    <div class="messages">
+      <div class="message"><strong>张三</strong>666</div>
+      <div class="message"><strong>李四</strong>666</div>
+    </div>
+    <div class="input-container">
+      <el-input v-model="sendMsg" width="100%"></el-input>
+      <el-button type="primary">发送</el-button>
+    </div>
+  </div>
 </template>
 
-<script setup>
-import { onMounted } from 'vue'
-let ws = null
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
+let socket = null
+const sendMsg = ref('')
 
 onMounted(() => {
-  initWs()
+  connectWebsocket()
 })
 
-const initWs = () => {
-  ws = new WebSocket('ws://localhost:8080')
-  // 使用 addEventListener 也可以
-  ws.onopen = () => {
-    console.log('onopen-连接建立成功')
+const connectWebsocket = () => {
+  socket = new WebSocket('ws://localhost:8080')
+  socket.onopen = () => {
+    alert('连接成功')
+  }
+  socket.onerror = () => {
+    alert('连接失败')
   }
 }
 </script>
+
+<style scoped lang="scss">
+.chat-container {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  width: 500px;
+  height: 700px;
+  margin: 30px auto 0;
+  padding: 12px;
+
+  background-color: #eaeaea;
+}
+
+h2 {
+  width: 100%;
+  font-size: 20px;
+  line-height: 30px;
+  text-align: center;
+}
+
+.messages {
+  overflow-y: auto;
+  flex-grow: 1;
+
+  width: 100%;
+  padding: 12px;
+
+  background-color: #fff;
+  border-radius: 4px;
+
+  .message {
+    height: 40px;
+    margin-bottom: 8px;
+    padding: 0 12px;
+
+    font-size: 16px;
+    line-height: 40px;
+
+    border: 1px solid #000;
+    border-radius: 4px;
+
+    strong {
+      margin-right: 12px;
+      user-select: none;
+    }
+  }
+}
+
+.input-container {
+  display: flex;
+  gap: 12px;
+
+  width: calc(100%);
+  margin-top: auto;
+  margin-bottom: 8px;
+}
+
+:deep(.el-input__inner) {
+  color: #000;
+}
+</style>
 ```
 
 如果我们可以在网络选项卡-接套字中接收到来自服务端的消息，说明连接成功了！
